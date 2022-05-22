@@ -31,6 +31,10 @@ int main() {
     th5.join();
     th6.join();
 
+    fstream f{};
+    f.open("logTest.log", ios::app);
+    Logger::getInstance()->log(WARN("test"), f);
+
     return 0;
 }
 

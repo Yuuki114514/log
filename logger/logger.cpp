@@ -64,7 +64,7 @@ void Logger::init() {
 }
 
 void Logger::judgeSize() {
-    lock_guard<mutex> lock(mx);
+    //lock_guard<mutex> lock(mx);
     output.seekg(0, ios::end);
     long length = output.tellg();
     if (length >= MAXSIZE) {
@@ -92,32 +92,78 @@ Logger * volatile Logger::getInstance() {
 }
 
 void Logger::log(const string& s) {
-    cout << s << endl;
+    cout << s;
 }
 
 void Logger::log(const string& s, int type) {
-    if (type == TERMINAL) {
-        log(s);
-    } else if (type == LOGFILE) {
-        if (!output.is_open()) {
-            init();
-        }
-        log(s, output);
-        judgeSize();
-    }
+//    if (type == TERMINAL) {
+//        log(s);
+//    } else if (type == LOGFILE) {
+//        if (!output.is_open()) {
+//            init();
+//        }
+//        if (ifFlush(s)) {
+//            flush();
+//            judgeSize();
+//        }
+//        strncat(buf, s.c_str(), s.size());
+//        logNum++;
+//    }
+    future<void>&& f = async(launch::async, &Logger::log2, logInstance, s, type);
 }
 
 void Logger::log(const string &s, fstream &_output) {
     lock_guard<mutex> lock(mx);
-    _output << s << endl;
+    _output << s;
 }
 
 Logger::~Logger() {
+    flush();
     output.close();
 }
 
 void Logger::flush() {
-    lock_guard<mutex> lock(mx);
+    //lock_guard<mutex> lock(mx);
     output << buf << endl;
+    time(&lastFlushedTime);
+    logNum = 0;
+    memset(buf, 0, BUFSIZE);
 }
+
+bool Logger::ifFlush(const string& s) {
+    //lock_guard<mutex> lock(mx);
+    time_t now;
+    time(&now);
+    if (logNum >= 50 || lastFlushedTime - now >= 10 || strlen(buf) + s.size() > BUFSIZE) {
+        return true;
+    }
+    return false;
+}
+
+void Logger::log2(const string &s, int type) {
+    try {
+        if (type == TERMINAL) {
+            log(s);
+        } else if (type == LOGFILE) {
+            if (!output.is_open()) {
+                lock_guard<mutex> lock(mx);
+                if (!output.is_open()) {
+                    init();
+                }
+            }
+            lock_guard<mutex> lock(mx);
+            if (ifFlush(s)) {
+                flush();
+                judgeSize();
+            }
+            //mx.lock();
+            strncat(buf, s.c_str(), s.size());
+            //mx.unlock();
+            logNum++;
+        }
+    } catch (runtime_error &e) {
+        cerr << e.what() << endl;
+    }
+}
+
 

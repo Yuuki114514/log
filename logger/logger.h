@@ -20,9 +20,9 @@ using namespace std;
 
 enum logLevel {debug = 1, info, warn, error, fatal};
 //              year-month-day hour-min-sec    thread level content file:line
-#define FORMAT "%04d-%02d-%02d %02d:%02d:%02d\t%d\t%s\t%s:%d\t%s"
+#define FORMAT "%04d-%02d-%02d %02d:%02d:%02d\t%d\t%s\t%s:%d\t%s\n"
 
-//logfile.year-month-day.hostname.log1
+//                  logfile.year-month-day.hostname.log1
 #define FILENAME "logFiles/logfile.%04d-%02d-%02d.%s.log"
 
 #define WARN(content) toFormat(content, __FILE__, __LINE__, warn)
@@ -31,10 +31,10 @@ enum logLevel {debug = 1, info, warn, error, fatal};
 #define FATAL(content) toFormat(content, __FILE__, __LINE__, fatal)
 #define ERROR(content) toFormat(content, __FILE__, __LINE__, error)
 
-
 #define TERMINAL 0
 #define LOGFILE 1
 #define MAXSIZE (2 * 1024 * 1024) //2m
+#define BUFSIZE 2048 //2k
 
 string toFormat(const char *content, const char *file, int line, int logLevel);
 void getTime(tm *&now);
@@ -47,14 +47,16 @@ private:
     int num{};
     char filename[80]{};
 
-    char buf[2048]{};
+    char buf[BUFSIZE]{};
     int logNum{};
-    tm lastFlushTime{};
+    time_t lastFlushedTime{};
 
     void init();
     void judgeSize();
     void createNewLogFile();
     void flush();
+    bool ifFlush(const string& s);
+    void log2(const string& s, int type);
 
     Logger() = default;
     ~Logger();
