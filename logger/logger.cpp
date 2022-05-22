@@ -61,6 +61,7 @@ void Logger::init() {
             break;
         }
     }
+    thread t(&Logger::bufFlush, &*logInstance);
 }
 
 void Logger::judgeSize() {
@@ -134,7 +135,7 @@ bool Logger::ifFlush(const string& s) {
     //lock_guard<mutex> lock(mx);
     time_t now;
     time(&now);
-    if (logNum >= 50 || lastFlushedTime - now >= 10 || strlen(buf) + s.size() > BUFSIZE) {
+    if (logNum >= 50 || now - lastFlushedTime >= 10 || strlen(buf) + s.size() > BUFSIZE) {
         return true;
     }
     return false;
@@ -166,4 +167,15 @@ void Logger::log2(const string &s, int type) {
     }
 }
 
-
+void Logger::bufFlush() {
+    for ( ; ; ) {
+        lock_guard<mutex> lock(mx);
+        time_t now;
+        time(&now);
+        if (now - lastFlushedTime >= 10 || logNum >= 50) {
+            flush();
+            judgeSize();
+        }
+        this_thread::sleep_for(chrono::seconds(1));
+    }
+}

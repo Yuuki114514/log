@@ -17,23 +17,25 @@ int main() {
 //    auto f = async(launch::async, &Logger::debug, &log, "async debug test");
 //    f = async(launch::async, &Logger::fatal, &log, "async fatal test");
 //    f = async(launch::async, &Logger::error, &log, "async error test");
-    thread th1(foo1);
-    thread th2(foo2);
-    thread th3(foo3);
-    thread th4(foo4);
-    thread th5(foo5);
-    thread th6(foo6);
+//    thread th1(foo1);
+//    thread th2(foo2);
+//    thread th3(foo3);
+//    thread th4(foo4);
+//    thread th5(foo5);
+//    thread th6(foo6);
 
-    th1.join();
-    th2.join();
-    th3.join();
-    th4.join();
-    th5.join();
-    th6.join();
+//    th1.join();
+//    th2.join();
+//    th3.join();
+//    th4.join();
+//    th5.join();
+//    th6.join();
 
-    fstream f{};
-    f.open("logTest.log", ios::app);
-    Logger::getInstance()->log(WARN("test"), f);
+//    fstream f{};
+//    f.open("logTest.log", ios::app);
+//    Logger::getInstance()->log(WARN("test"), f);
+    Logger::getInstance()->log(WARN("test"), LOGFILE);
+    this_thread::sleep_for(chrono::seconds(20));
 
     return 0;
 }

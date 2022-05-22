@@ -51,6 +51,7 @@ private:
     int logNum{};
     time_t lastFlushedTime{};
 
+    void bufFlush();
     void init();
     void judgeSize();
     void createNewLogFile();
